@@ -6,14 +6,14 @@ const pizzaController = {
     Pizza.find({})
       .populate({
         path: 'comments',
-        select: '-__v'
+        select: '-__v',
       })
       .select('-__v')
       .sort({ _id: -1 })
       .then(dbPizzaData => res.json(dbPizzaData))
       .catch(err => {
         console.log(err);
-        res.sendStatus(400);
+        res.status(400).json(err);
       });
   },
 
@@ -22,21 +22,27 @@ const pizzaController = {
     Pizza.findOne({ _id: params.id })
       .populate({
         path: 'comments',
-        select: '-__v'
+        select: '-__v',
       })
       .select('-__v')
-      .then(dbPizzaData => res.json(dbPizzaData))
+      .then(dbPizzaData => {
+        if (!dbPizzaData) {
+          res.status(404).json({ message: 'No pizza found with this id!' });
+          return;
+        }
+        res.json(dbPizzaData);
+      })
       .catch(err => {
         console.log(err);
-        res.sendStatus(400);
+        res.status(400).json(err);
       });
   },
 
-  // createPizza
+  // create pizza
   createPizza({ body }, res) {
     Pizza.create(body)
       .then(dbPizzaData => res.json(dbPizzaData))
-      .catch(err => res.json(err));
+      .catch(err => res.status(400).json(err));
   },
 
   // update pizza by id
@@ -49,15 +55,21 @@ const pizzaController = {
         }
         res.json(dbPizzaData);
       })
-      .catch(err => res.json(err));
+      .catch(err => res.status(400).json(err));
   },
 
   // delete pizza
   deletePizza({ params }, res) {
     Pizza.findOneAndDelete({ _id: params.id })
-      .then(dbPizzaData => res.json(dbPizzaData))
-      .catch(err => res.json(err));
-  }
+      .then(dbPizzaData => {
+        if (!dbPizzaData) {
+          res.status(404).json({ message: 'No pizza found with this id!' });
+          return;
+        }
+        res.json(dbPizzaData);
+      })
+      .catch(err => res.status(400).json(err));
+  },
 };
 
 module.exports = pizzaController;
